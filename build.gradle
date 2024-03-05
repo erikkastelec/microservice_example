@@ -22,6 +22,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-resteasy'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
 }
 
 group 'com.test'
@@ -33,11 +34,17 @@ java {
 }
 
 sourceSets {
+    [
     main {
         java {
             srcDirs 'src/main/java'
         }
-    }
+    },
+    test {
+        java {
+            srcDirs 'src/test/java'
+        }
+    }]
 }
 
 test {
