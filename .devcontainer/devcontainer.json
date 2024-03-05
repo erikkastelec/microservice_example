@@ -1,0 +1,44 @@
+{
+    "name": "Quarkus Development",
+    "image": "gradle:jdk21",
+    // "features": {
+    //     // Ensures that Quarkus is installed in the container
+    //     "ghcr.io/devcontainers-contrib/features/quarkus-sdkman:2": {
+    //      "jdkVersion": "21"
+    //     },
+    // },
+    
+    "remoteUser": "root",
+    "settings": {
+        "java.home": "/opt/java/openjdk",
+        "java.configuration.runtimes": [
+            {
+                "name": "JavaSE-21",
+                "path": "/opt/java/openjdk",
+            }
+        ],
+    },
+    
+    // End of Docker-from-Docker recommendations
+    "containerEnv": {
+     // You can specify environment variables here, which will be available to the application via System.getenv()
+     "CUSTOM_PROP": "TEMP"
+    },
+    
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash",
+            },
+            "extensions": [
+                "vscjava.vscode-java-pack",
+                "redhat.vscode-quarkus"
+            ]
+        },
+    },
+    "forwardPorts": [
+        8080,
+        5005
+    ],
+  }
+  
