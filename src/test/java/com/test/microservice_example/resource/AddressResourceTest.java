@@ -11,7 +11,6 @@ import com.test.microservice_example.model.Address;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
-
 @QuarkusTest
 public class AddressResourceTest {
 

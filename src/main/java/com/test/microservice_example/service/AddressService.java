@@ -18,60 +18,79 @@ public class AddressService {
     @Inject
     UserRepository userRepository;
 
-    public List<Address> listAddressesByUserId(Long userId) {
-        return addressRepository.findByUserId(userId);
+    public List<Address> listAllAddresses() {
+        return addressRepository.listAll();
     }
 
     @Transactional
-    public Address addOrUpdateAddress(Address address) {
-        validateAddress(address);
+    public Address addAddress(Address address) {
+        User user = findUserByIdentifier(address.getUser().getId().toString()); // Assuming the user is set in the address
+        if (user == null) {
+            throw new IllegalStateException("User not found.");
+        }
 
-        if (address.getId() == null) { // New address
-            long addressCount = addressRepository.countByUserId(address.getUser().getId());
-            if (addressCount >= 3) {
-                throw new IllegalStateException("User cannot have more than 3 addresses.");
-            }
+        validateAddress(address);
+        long addressCount = addressRepository.count("user", user);
+        if (addressCount >= 3) {
+            throw new IllegalStateException("User cannot have more than 3 addresses.");
         }
 
         if (address.getIsDefault()) {
-            Address currentDefault = addressRepository.findDefaultByUserId(address.getUser().getId());
-            if (currentDefault != null && !currentDefault.equals(address)) {
+            Address currentDefault = addressRepository.find("isDefault = true and user", user).firstResult();
+            if (currentDefault != null) {
                 currentDefault.setIsDefault(false);
                 addressRepository.persist(currentDefault);
             }
         }
 
+        address.setUser(user); // Ensure the user is associated with the address
         addressRepository.persist(address);
         return address;
     }
 
     @Transactional
-    public void deleteAddress(Long addressId) {
-        Address address = addressRepository.findById(addressId);
-        if (address == null) {
-            throw new IllegalStateException("Address not found.");
+    public Address updateAddress(Long id, Address updatedAddress) {
+        Address existingAddress = addressRepository.findById(id);
+        if (existingAddress == null) {
+            return null;
         }
 
-        addressRepository.delete(address);
-        // Check and set a new default if necessary
-        if (address.getIsDefault()) {
-            List<Address> remainingAddresses = addressRepository.findByUserId(address.getUser().getId());
-            if (!remainingAddresses.isEmpty()) {
-                remainingAddresses.get(0).setIsDefault(true); // Make the first of the remaining addresses the default
+        validateAddress(updatedAddress);
+        existingAddress.setStreet(updatedAddress.getStreet()); // Update fields as necessary
+        // More field updates here...
+
+        if (updatedAddress.getIsDefault() && !existingAddress.getIsDefault()) {
+            Address currentDefault = addressRepository.find("isDefault = true and user", existingAddress.getUser()).firstResult();
+            if (currentDefault != null) {
+                currentDefault.setIsDefault(false);
+                addressRepository.persist(currentDefault);
             }
+            existingAddress.setIsDefault(true);
         }
+
+        addressRepository.persist(existingAddress);
+        return existingAddress;
+    }
+
+    @Transactional
+    public boolean deleteAddress(Long id) {
+        Address address = addressRepository.findById(id);
+        if (address != null) {
+            addressRepository.delete(address);
+            return true;
+        }
+        return false;
     }
 
     private void validateAddress(Address address) {
-        if (address.getCountry() != null && !address.getCountry().equals("Slovenia")) {
+        if (!"Slovenia".equals(address.getCountry())) {
             throw new IllegalArgumentException("Only addresses within the Republic of Slovenia can be entered.");
         }
-        // Add more validation as needed, such as checking for required fields
+        // Additional validations can be added here
     }
 
-    // Method to fetch user by any of the unique identifiers (id1, id2, id3)
     public User findUserByIdentifier(String identifier) {
+        // Assuming a method in UserRepository that implements this logic
         return userRepository.findUserByIdentifier(identifier);
     }
-
 }
