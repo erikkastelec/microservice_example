@@ -13,4 +13,10 @@ public class User {
     private String id1;
     private String id2;
     private String id3;
+
+    // Add getters and setters for all fields
+    public Long getId() {
+        return id;
+    }
+    
 }
