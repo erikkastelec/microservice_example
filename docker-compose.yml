@@ -1,0 +1,13 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: microservice_example
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
