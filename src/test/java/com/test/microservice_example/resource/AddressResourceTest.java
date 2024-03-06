@@ -125,7 +125,7 @@ public class AddressResourceTest {
 
         // Check that the address was added
         given()
-            .when().get("/users/3/addresses")
+            .when().get("/users/User-003/addresses")
             .then()
             .log().all()
             .statusCode(200) // Expecting status code 200 for successful retrieval
@@ -217,6 +217,98 @@ public class AddressResourceTest {
         
     }
 
+    @Test
+    public void testCountryMustBeSlovenia(){
+        // JSON payload for the new address, including user identifier
+        String newAddressJson = """
+            {
+                "userIdentifier": "User-001",
+                "title": "Vacation Home",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "street": "456 Beach St",
+                "houseNumber": "2",
+                "postalCode": "67890",
+                "postOfficeName": "Beach Post Office",
+                "city": "BeachCity",
+                "country": "USA",
+                "isDefault": false
+            }
+            """;
+
+        // Perform HTTP request to add the new address
+        given()
+            .contentType(ContentType.JSON)
+            .body(newAddressJson)
+            .when().post("/addresses")
+            .then()
+            .log().all()
+            .statusCode(400); // Expecting status code 400 for invalid country
+
+        newAddressJson = """
+            {
+                "userIdentifier": "User-001",
+                "title": "Vacation Home",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "street": "456 Beach St",
+                "houseNumber": "2",
+                "postalCode": "67890",
+                "postOfficeName": "Beach Post Office",
+                "city": "BeachCity",
+                "country": "Slovenia",
+                "isDefault": false
+            }
+            """;
+
+        // Perform HTTP request to add the new address
+        given()
+            .contentType(ContentType.JSON)
+            .body(newAddressJson)
+            .when().post("/addresses")
+            .then()
+            .log().all()
+            .statusCode(201); // Expecting status code 201 for successful creation
+
+    }
+
+    @Test
+    public void testSetDefaultTitle() {
+        // JSON payload for the new address, including user identifier
+        String newAddressJson = """
+            {
+                "userIdentifier": "User-001",
+                "title": "",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "street": "456 Beach St",
+                "houseNumber": "2",
+                "postalCode": "67890",
+                "postOfficeName": "Beach Post Office",
+                "city": "BeachCity",
+                "country": "Slovenia",
+                "isDefault": false
+            }
+            """;
+
+        // Perform HTTP request to add the new address
+        given()
+            .contentType(ContentType.JSON)
+            .body(newAddressJson)
+            .when().post("/addresses")
+            .then()
+            .log().all()
+            .statusCode(201); // Expecting status code 201 for successful creation
+
+        // Check that the address was added
+        given()
+            .when().get("/users/User-001/addresses")
+            .then()
+            .log().all()
+            .statusCode(200) // Expecting status code 200 for successful retrieval
+            .body("find { it.title == 'Naslov 3' }", notNullValue());
+    }
+    
     @Test
     public void testAddressValidationFails() {
         // Define an address with missing required fields
