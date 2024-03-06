@@ -54,7 +54,7 @@ public class AddressService {
 
         User user = userService.findUserByIdentifier(request.getUserIdentifier());
         if (user == null) {
-            throw new NotFoundException("User not found with the provided identifier.");
+            throw new BadRequestException("User not found with the provided identifier.");
         }
 
         Address address = new Address();
@@ -83,7 +83,7 @@ public class AddressService {
 
         User user = address.getUser();
         if (user == null) {
-            throw new NotFoundException("User not found with the provided identifier.");
+            throw new BadRequestException("User not found with the provided identifier.");
         }
 
         long addressCount = addressRepository.count("user =?1", user);
@@ -102,22 +102,21 @@ public class AddressService {
             throw new BadRequestException("Validation error: " + errorMessage.toString());
         }
 
-        if (address.getCountry() != "Slovenia") {
-            throw new BadRequestException("Only addresses in Slovenia are allowed.");
+        if (address.getCountry() == null || !"Slovenia".equals(address.getCountry())) {
+            
+            throw new BadRequestException("Only addresses in Slovenia are allowed. " + address.getCountry() + " is not.");
         }
+        
 
         if (Boolean.TRUE.equals(address.getIsDefault()) || addressCount == 0) {
             
-            // try {
             Address currentDefault = addressRepository.find("isDefault = true and user = ?1", user).firstResult();
-            // } catch (Exception e) {
-            //     e.printStackTrace();
-            // }
         
             if (currentDefault != null) {
                 currentDefault.setIsDefault(false);
                 addressRepository.persist(currentDefault);
             }
+            address.setIsDefault(true);
         }
 
         addressRepository.persist(address);

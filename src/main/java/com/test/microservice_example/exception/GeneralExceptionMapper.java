@@ -20,6 +20,7 @@ public class GeneralExceptionMapper implements ExceptionMapper<Exception> {
                     .type(MediaType.TEXT_PLAIN)
                     .build();
         }
+        
         if (exception instanceof NotFoundException) {
             return Response
                     .status(Response.Status.NOT_FOUND)
