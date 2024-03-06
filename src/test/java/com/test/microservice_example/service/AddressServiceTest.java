@@ -1,13 +1,10 @@
 package com.test.microservice_example.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +17,9 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
+
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 
@@ -36,37 +36,95 @@ public class AddressServiceTest {
     @InjectMock
     UserRepository userRepository;
 
+    
     @Test
     public void testAddNewAddressSuccess() {
-        User user = new User(); // Assuming User has an ID set for simplicity
+        // Create a user
+        User user = new User();
         user.setId(1L);
-        Address newAddress = new Address(); // Populate newAddress with appropriate test data
-        newAddress.setUser(user);
-        newAddress.setCountry("Slovenia"); // Ensure the country is set to "Slovenia" to pass validation
+        user.setId1("1");
     
-        Mockito.when(userRepository.findUserByIdentifier(user.getId().toString())).thenReturn(user);
-        Mockito.when(addressRepository.countByUserId(user.getId())).thenReturn(2L); // Less than 3 addresses
+        // Mock the behavior of UserRepository to return the created user
+        Mockito.when(userRepository.findUserByIdentifier("1")).thenReturn(user);
+    
+        // Create a new address
+        Address newAddress = new Address();
+        newAddress.setUser(user);
+        newAddress.setTitle("Home"); // Sample title
+        newAddress.setInstitutionName("Sample Institution"); // Sample institution name
+        newAddress.setFirstName("John");
+        newAddress.setLastName("Doe");
+        newAddress.setStreet("123 Main St");
+        newAddress.setHouseNumber("1");
+        newAddress.setPostalCode("12345");
+        newAddress.setPostOfficeName("Main Post Office");
+        newAddress.setCity("City");
+        newAddress.setCountry("Slovenia");
+        newAddress.setIsDefault(true);
+    
+        // Mock the behavior of AddressRepository to return a non-null value
+        // Mock the behavior of AddressRepository to return a mock PanacheQuery<Address> object
+        Mockito.when(addressRepository.find("isDefault = true and user", user)).thenReturn(Mockito.mock(PanacheQuery.class));
+
+    
+        // Mock the behavior of AddressRepository
+        Mockito.when(addressRepository.countByUserId(1L)).thenReturn(2L); // Less than 3 addresses
         Mockito.doAnswer(i -> i.getArguments()[0]).when(addressRepository).persist(Mockito.any(Address.class));
     
+        // Call the service method
         Address savedAddress = addressService.addAddress(newAddress);
+    
+        // Assert that the saved address is not null
         assertNotNull(savedAddress);
+    
+        // Assert that each field of the saved address matches the input address
+        assertEquals(newAddress.getTitle(), savedAddress.getTitle());
+        assertEquals(newAddress.getInstitutionName(), savedAddress.getInstitutionName());
+        assertEquals(newAddress.getFirstName(), savedAddress.getFirstName());
+        assertEquals(newAddress.getLastName(), savedAddress.getLastName());
+        assertEquals(newAddress.getStreet(), savedAddress.getStreet());
+        assertEquals(newAddress.getHouseNumber(), savedAddress.getHouseNumber());
+        assertEquals(newAddress.getPostalCode(), savedAddress.getPostalCode());
+        assertEquals(newAddress.getPostOfficeName(), savedAddress.getPostOfficeName());
+        assertEquals(newAddress.getCity(), savedAddress.getCity());
+        assertEquals(newAddress.getCountry(), savedAddress.getCountry());
+        assertEquals(newAddress.getIsDefault(), savedAddress.getIsDefault());
+    
+        // Verify that the persist method of AddressRepository was called once with the input address
         Mockito.verify(addressRepository, Mockito.times(1)).persist(newAddress);
     }
+    
+
 
     @Test
     public void testAddFourthAddressFails() {
         User user = new User(); // Mocked user
         user.setId(1L);
     
-        Address fourthAddress = new Address(); // Set necessary fields
+
+        // Create a new address
+        Address fourthAddress = new Address();
         fourthAddress.setUser(user);
-        fourthAddress.setCountry("Slovenia"); // Ensure the country is set to "Slovenia" to pass validation
+        fourthAddress.setTitle("Home"); // Sample title
+        fourthAddress.setInstitutionName("Sample Institution"); // Sample institution name
+        fourthAddress.setFirstName("John");
+        fourthAddress.setLastName("Doe");
+        fourthAddress.setStreet("123 Main St");
+        fourthAddress.setHouseNumber("1");
+        fourthAddress.setPostalCode("12345");
+        fourthAddress.setPostOfficeName("Main Post Office");
+        fourthAddress.setCity("City");
+        fourthAddress.setCountry("Slovenia");
+        fourthAddress.setIsDefault(true);
+
     
         Mockito.when(userRepository.findUserByIdentifier(user.getId().toString())).thenReturn(user);
         Mockito.when(addressRepository.count("user", user)).thenReturn(3L); // Simulate that the user already has 3 addresses
-    
-        assertThrows(IllegalStateException.class, () -> addressService.addAddress(fourthAddress));
+        // user cannot have more than 3 addresses
+        assertThrows(BadRequestException.class, () -> addressService.addAddress(fourthAddress));
+        assertEquals("User cannot have more than 3 addresses.", assertThrows(BadRequestException.class, () -> addressService.addAddress(fourthAddress)).getMessage());
     }
+
 
     @Test
     public void testDeleteAddress() {

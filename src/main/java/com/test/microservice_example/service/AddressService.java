@@ -1,13 +1,24 @@
 package com.test.microservice_example.service;
 
+import com.test.microservice_example.dto.AddressCreationRequest;
+import com.test.microservice_example.dto.AddressUpdateDTO;
 import com.test.microservice_example.model.Address;
 import com.test.microservice_example.model.User;
 import com.test.microservice_example.repository.AddressRepository;
 import com.test.microservice_example.repository.UserRepository;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.WebApplicationException;
+
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 public class AddressService {
@@ -18,24 +29,81 @@ public class AddressService {
     @Inject
     UserRepository userRepository;
 
+    @Inject 
+    UserService userService;
+
     public List<Address> listAllAddresses() {
         return addressRepository.listAll();
     }
 
     @Transactional
-    public Address addAddress(Address address) {
-        User user = findUserByIdentifier(address.getUser().getId().toString()); // Assuming the user is set in the address
-        if (user == null) {
-            throw new IllegalStateException("User not found.");
+    public Address addAddress(AddressCreationRequest request) {
+        if (request == null) {
+            throw new BadRequestException("Invalid address data.");
         }
 
-        validateAddress(address);
+        Address address = mapAddressCreationRequestToAddress(request);
+
+        // Call the overloaded addAddress method with the Address object
+        return addAddress(address);
+    }
+
+    private Address mapAddressCreationRequestToAddress(AddressCreationRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request cannot be null");
+        }
+
+        User user = userService.findUserByIdentifier(request.getUserIdentifier());
+        if (user == null) {
+            throw new NotFoundException("User not found with the provided identifier.");
+        }
+
+        Address address = new Address();
+        
+        // Assuming User is already validated and fetched from the database
+        address.setUser(user);
+        address.setTitle(request.getTitle());
+        address.setFirstName(request.getFirstName());
+        address.setLastName(request.getLastName());
+        address.setStreet(request.getStreet());
+        address.setHouseNumber(request.getHouseNumber());
+        address.setPostalCode(request.getPostalCode());
+        address.setPostOfficeName(request.getPostOfficeName());
+        address.setCity(request.getCity());
+        address.setCountry(request.getCountry());
+        address.setIsDefault(request.getIsDefault() == null ? Boolean.FALSE : request.getIsDefault());
+
+        return address;
+    }
+
+    @Transactional
+    public Address addAddress(Address address) {
+        if (address == null) {
+            throw new BadRequestException("Invalid address data.");
+        }
+
+        User user = address.getUser();
+        if (user == null) {
+            throw new NotFoundException("User not found with the provided identifier.");
+        }
+
         long addressCount = addressRepository.count("user", user);
         if (addressCount >= 3) {
-            throw new IllegalStateException("User cannot have more than 3 addresses.");
+            throw new BadRequestException("User cannot have more than 3 addresses.");
         }
 
-        if (address.getIsDefault()) {
+        // Validate the address fields using Bean Validation
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        Set<ConstraintViolation<Address>> violations = validator.validate(address);
+        if (!violations.isEmpty()) {
+            StringBuilder errorMessage = new StringBuilder();
+            for (ConstraintViolation<Address> violation : violations) {
+                errorMessage.append(violation.getMessage()).append("; ");
+            }
+            throw new BadRequestException("Validation error: " + errorMessage.toString());
+        }
+
+        if (Boolean.TRUE.equals(address.getIsDefault()) || addressCount == 0) {
             Address currentDefault = addressRepository.find("isDefault = true and user", user).firstResult();
             if (currentDefault != null) {
                 currentDefault.setIsDefault(false);
@@ -43,54 +111,83 @@ public class AddressService {
             }
         }
 
-        address.setUser(user); // Ensure the user is associated with the address
         addressRepository.persist(address);
         return address;
     }
 
-    @Transactional
-    public Address updateAddress(Long id, Address updatedAddress) {
-        Address existingAddress = addressRepository.findById(id);
-        if (existingAddress == null) {
-            return null;
-        }
 
-        validateAddress(updatedAddress);
-        existingAddress.setStreet(updatedAddress.getStreet()); // Update fields as necessary
-        // More field updates here...
-
-        if (updatedAddress.getIsDefault() && !existingAddress.getIsDefault()) {
-            Address currentDefault = addressRepository.find("isDefault = true and user", existingAddress.getUser()).firstResult();
-            if (currentDefault != null) {
-                currentDefault.setIsDefault(false);
-                addressRepository.persist(currentDefault);
-            }
-            existingAddress.setIsDefault(true);
-        }
-
-        addressRepository.persist(existingAddress);
-        return existingAddress;
-    }
 
     @Transactional
-    public boolean deleteAddress(Long id) {
+    public void updateAddress(Long id, AddressUpdateDTO dto) {
         Address address = addressRepository.findById(id);
-        if (address != null) {
-            addressRepository.delete(address);
-            return true;
+        if (dto.getTitle() != null && !dto.getTitle().isEmpty()) {
+            address.setTitle(dto.getTitle().orElse(null));
         }
-        return false;
+        if (dto.getFirstName() != null && !dto.getFirstName().isEmpty()) {
+            address.setFirstName(dto.getFirstName().orElse(null));
+        }
+        if (dto.getLastName() != null && !dto.getLastName().isEmpty()) {
+            address.setLastName(dto.getLastName().orElse(null));
+        }
+        if (dto.getStreet() != null && !dto.getStreet().isEmpty()) {
+            address.setStreet(dto.getStreet().orElse(null));
+        }
+        if (dto.getHouseNumber() != null && !dto.getHouseNumber().isEmpty()) {
+            address.setHouseNumber(dto.getHouseNumber().orElse(null));
+        }
+        if (dto.getPostalCode() != null && !dto.getPostalCode().isEmpty()) {
+            address.setPostalCode(dto.getPostalCode().orElse(null));
+        }
+        if (dto.getPostOfficeName() != null && !dto.getPostOfficeName().isEmpty()) {
+            address.setPostOfficeName(dto.getPostOfficeName().orElse(null));
+        }
+        if (dto.getCity() != null && !dto.getCity().isEmpty()) {
+            address.setCity(dto.getCity().orElse(null));
+        }
+        if (dto.getCountry() != null && !dto.getCountry().isEmpty()) {
+            address.setCountry(dto.getCountry().orElse(null));
+        }
+        
+    
+
+        // Handle the isDefault field
+        if (dto.getIsDefault() != null) {
+            if (dto.getIsDefault().orElse(false) && !address.getIsDefault()) {
+                // Unset current default if needed
+                Address currentDefault = addressRepository.find("isDefault = true and user", address.getUser()).firstResult();
+                if (currentDefault != null) {
+                    currentDefault.setIsDefault(false);
+                    addressRepository.persist(currentDefault);
+                }
+                address.setIsDefault(dto.getIsDefault().orElse(false));
+            }
+        }
+
+        addressRepository.persist(address);
     }
 
-    private void validateAddress(Address address) {
-        if (!"Slovenia".equals(address.getCountry())) {
-            throw new IllegalArgumentException("Only addresses within the Republic of Slovenia can be entered.");
+
+        @Transactional
+        public boolean deleteAddress(Long id) {
+            Address address = addressRepository.findById(id);
+            if (address != null) {
+                addressRepository.delete(address);
+                return true;
+            }
+            return false;
         }
-        // Additional validations can be added here
+
+        private void validateAddress(Address address) {
+            if (!"Slovenia".equals(address.getCountry())) {
+                throw new IllegalArgumentException("Only addresses within the Republic of Slovenia can be entered.");
+            }
+        }
+
+    public Address getAddressById(Long id) {
+        return addressRepository.findById(id);
     }
 
-    public User findUserByIdentifier(String identifier) {
-        // Assuming a method in UserRepository that implements this logic
-        return userRepository.findUserByIdentifier(identifier);
+    public List<Address> findAllAddressesByUserId(User user) {
+        return addressRepository.find("user", user).list();
     }
 }

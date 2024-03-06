@@ -1,16 +1,23 @@
 package com.test.microservice_example.model;
 
+import java.util.Optional;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ForeignKey;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
+@Table(name = "address")
 public class Address {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,16 +26,42 @@ public class Address {
     @JoinColumn(name = "user_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_address_user"))
     private User user;
 
+    @NotBlank(message = "Title is required")
     private String title;
+    
+    @Column(name = "institution_name")
     private String institutionName;
+
+    @NotBlank(message = "First name is required")
+    @Column(name = "first_name")
     private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    @Column(name = "last_name")
     private String lastName;
+
+    @NotBlank(message = "Street is required")
     private String street;
+
+    @Column(name = "house_number")
+    @NotBlank(message = "House number is required")
     private String houseNumber;
+
+    @NotBlank(message = "Postal code is required")
+    @Column(name = "postal_code")
     private String postalCode;
+
+    @NotBlank(message = "Post office name is required")
+    @Column(name = "post_office_name")
     private String postOfficeName;
+
+    @NotBlank(message = "City is required")
     private String city;
+
+    @NotBlank(message = "Country is required")
     private String country;
+
+    @Column(name = "is_default")
     private Boolean isDefault = false;
 
     // Constructors, getters, and setters
