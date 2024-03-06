@@ -1,13 +1,31 @@
 version: '3'
+
+networks:
+  microservice_example:
+    driver: bridge
 services:
   postgres:
     image: postgres
     restart: unless-stopped
+    ports:
+      - 5433:5432
     environment:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
       POSTGRES_DB: microservice_example
+    networks:
+      - microservice_example
+
+  app:
+    build: .
+    restart: unless-stopped
     ports:
-      - 5433:5432
-    # volumes:
-    #   - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - 8082:8080
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_URL: jdbc:postgresql://postgres/microservice_example
+    depends_on:
+      - postgres
+    networks:
+      - microservice_example
