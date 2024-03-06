@@ -32,6 +32,14 @@ The application provides an OpenAPI specification, making it easy to understand 
 
 ![Data Model Diagram](data_model_diagram.svg)
 
+## Postman Collection
+
+The Postman collection contains a set of requests to interact with the application's API. The collection can be imported into Postman to test the API endpoints.
+
+- **Postman Collection**: [Microservice_API.postman_collection.json](Microservice_API.postman_collection.json)
+
+  Import this collection into Postman to access the requests and test the API endpoints.
+
 ## Important Notes
 
 - Ensure Docker and Docker Compose are installed and running on your machine before executing the `docker-compose up -d` command.
