@@ -162,14 +162,6 @@ public class Address {
         this.country = country;
     }
 
-    public Boolean getDefault() {
-        return isDefault;
-    }
-
-    public void setDefault(Boolean isDefault) {
-        this.isDefault = isDefault;
-    }
-
     public Boolean getIsDefault() {
         return isDefault;
     }

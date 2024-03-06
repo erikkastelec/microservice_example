@@ -7,6 +7,7 @@ import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 
 import com.test.microservice_example.model.Address;
@@ -36,10 +37,13 @@ public class UserResource {
     @Path("/{userId}/addresses")
     @Operation(summary = "Get all addresses for a user", 
                description = "Retrieves all addresses associated with a given user.")
-    @APIResponse(responseCode = "200", description = "Successful retrieval", 
-                 content = @Content(mediaType = "application/json", 
-                 schema = @Schema(implementation = Address.class, type = SchemaType.ARRAY)))
-    @APIResponse(responseCode = "404", description = "User not found")
+    @APIResponses(value = {
+        @APIResponse(responseCode = "200", description = "Successful retrieval", 
+        content = @Content(mediaType = "application/json", 
+        schema = @Schema(implementation = Address.class, type = SchemaType.ARRAY))),
+        @APIResponse(responseCode = "404", description = "User not found")
+    })
+
     public Response getUserAddresses(@Parameter(description = "ID of the user to retrieve addresses for", required = true) 
                                      @PathParam("userId") String userId) {
 
@@ -56,10 +60,12 @@ public class UserResource {
     @Path("/{userId}/addresses/default")
     @Operation(summary = "Get user's default address", 
                description = "Retrieves the default address associated with a given user.")
-    @APIResponse(responseCode = "200", description = "Successful retrieval", 
-                 content = @Content(mediaType = "application/json", 
-                 schema = @Schema(implementation = Address.class)))
-    @APIResponse(responseCode = "404", description = "User not found or default address not set")
+    @APIResponses(value = {
+        @APIResponse(responseCode = "200", description = "Successful retrieval", 
+        content = @Content(mediaType = "application/json", 
+        schema = @Schema(implementation = Address.class))),
+        @APIResponse(responseCode = "404", description = "User not found or default address not set")
+    })
     public Response getUserDefaultAddress(@Parameter(description = "ID of the user to retrieve the default address for", required = true) 
                                           @PathParam("userId") String userId) {
 
