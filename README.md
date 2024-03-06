@@ -28,6 +28,9 @@ The application provides an OpenAPI specification, making it easy to understand 
 
   This URL serves the raw OpenAPI specification in YAML format, providing detailed information about the API endpoints, parameters, and responses.
 
+## Data Model Diagram
+
+![Data Model Diagram](data_model_diagram.svg)
 
 ## Important Notes
 
