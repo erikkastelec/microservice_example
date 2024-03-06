@@ -10,11 +10,21 @@ repositories {
 
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
-    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    //implementation 'io.quarkus:quarkus-jdbc-postgresql'
     implementation 'io.quarkus:quarkus-arc'
-    testImplementation 'io.quarkus:quarkus-junit5'
+    //testImplementation 'io.quarkus:quarkus-junit5'
     // jaxrs
-    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    //implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    // validator
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    implementation 'io.quarkus:quarkus-resteasy'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
 }
 
 group 'com.test'
@@ -26,16 +36,20 @@ java {
 }
 
 sourceSets {
+    [
     main {
         java {
             srcDirs 'src/main/java'
         }
-    }
+    },
+    test {
+        java {
+            srcDirs 'src/test/java'
+        }
+    }]
 }
 
-test {
-    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
-}
+
 compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'

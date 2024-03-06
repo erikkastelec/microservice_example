@@ -1,0 +1,8 @@
+openapi: 3.0.1
+info:
+  title: Microservice API
+  description: This is a sample Quarkus microservice API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/
+    description: Local server
