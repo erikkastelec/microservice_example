@@ -190,4 +190,8 @@ public class AddressService {
     public List<Address> findAllAddressesByUserId(User user) {
         return addressRepository.find("user", user).list();
     }
+
+    public Address findDefaultAddressByUserId(User user) {
+        return addressRepository.find("isDefault = true and user =?1", user).firstResult();
+    }
 }

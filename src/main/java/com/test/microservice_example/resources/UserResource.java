@@ -52,5 +52,27 @@ public class UserResource {
         return Response.ok(addresses).build();
     }
 
+    @GET
+    @Path("/{userId}/addresses/default")
+    @Operation(summary = "Get user's default address", 
+               description = "Retrieves the default address associated with a given user.")
+    @APIResponse(responseCode = "200", description = "Successful retrieval", 
+                 content = @Content(mediaType = "application/json", 
+                 schema = @Schema(implementation = Address.class)))
+    @APIResponse(responseCode = "404", description = "User not found or default address not set")
+    public Response getUserDefaultAddress(@Parameter(description = "ID of the user to retrieve the default address for", required = true) 
+                                          @PathParam("userId") String userId) {
+
+        User user = userService.findUserByIdentifier(userId); // Method to find user by ID
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Address defaultAddress = addressService.findDefaultAddressByUserId(user); // Method to get default address by user ID
+        if (defaultAddress == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok(defaultAddress).build();
+    }
     
 }
