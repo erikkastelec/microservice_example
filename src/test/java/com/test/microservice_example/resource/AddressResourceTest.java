@@ -95,9 +95,43 @@ public class AddressResourceTest {
 
     }
             
-        // Additional checks to verify the address was added...
+    @Test
+    public void testSetDefaultIfFirstAddress() {
+        // JSON payload for the new address, including user identifier
+        String newAddressJson = """
+            {
+                "userIdentifier": "User-003",
+                "title": "Vacation Home",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "street": "456 Beach St",
+                "houseNumber": "2",
+                "postalCode": "67890",
+                "postOfficeName": "Beach Post Office",
+                "city": "BeachCity",
+                "country": "Slovenia",
+                "isDefault": false
+            }
+            """;
 
-    
+        // Perform HTTP request to add the new address
+        given()
+            .contentType(ContentType.JSON)
+            .body(newAddressJson)
+            .when().post("/addresses")
+            .then()
+            .log().all()
+            .statusCode(201); // Expecting status code 201 for successful creation
+
+        // Check that the address was added
+        given()
+            .when().get("/users/3/addresses")
+            .then()
+            .log().all()
+            .statusCode(200) // Expecting status code 200 for successful retrieval
+            .body("find { it.isDefault == true }", notNullValue());
+
+    }   
 
     @Test
     public void testUpdateAddressEndpoint() {

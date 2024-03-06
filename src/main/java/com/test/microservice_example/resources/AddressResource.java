@@ -6,6 +6,7 @@ import com.test.microservice_example.dto.AddressCreationRequest;
 import com.test.microservice_example.dto.AddressUpdateDTO;
 import com.test.microservice_example.model.Address;
 import com.test.microservice_example.service.AddressService;
+
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -14,6 +15,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -28,6 +30,30 @@ public class AddressResource {
     @Inject
     AddressService addressService;
 
+
+    // @Provider
+    // public class JakartaExceptionMapper implements ExceptionMapper<Throwable> {
+
+    //     @Override
+    //     public Response toResponse(Throwable exception) {
+    //         // Handle the exception here and return an appropriate response
+    //         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    //     }
+    // }
+    // @Provider
+    // class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentException> {
+    
+    //     @Override
+    //     public Response toResponse(IllegalArgumentException exception) {
+    //         return Response.status(Response.Status.BAD_REQUEST)
+    //                     .type(MediaType.APPLICATION_JSON_TYPE)
+    //                     .entity(Map.of("error", exception.getMessage()))
+    //                     .build();
+    //     }
+    // }
+    
+    
+    
     // @Provider
     // public class JakartaExceptionMapper implements ExceptionMapper<Throwable> {
 
@@ -78,6 +104,7 @@ public class AddressResource {
     @Operation(summary = "Add a new address", description = "Adds a new address to the system.")
     @APIResponse(responseCode = "201", description = "Address created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Address.class)))
+    @APIResponse(responseCode = "400", description = "Invalid request")
     public Response addAddress(@Valid @RequestBody(description = "Address to add", required = true,
                                 content = @Content(schema = @Schema(implementation = AddressCreationRequest.class))) AddressCreationRequest request) {
         Address address = addressService.addAddress(request);

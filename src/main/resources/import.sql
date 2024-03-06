@@ -1,7 +1,8 @@
 -- Insert test users
 INSERT INTO app_user (id, id1, id2, id3) VALUES 
 (1, 'User-001', 'ID-1', 'ID-A'),
-(2, 'User-002', 'ID-2', 'ID-B');
+(2, 'User-002', 'ID-2', 'ID-B'),
+(3, 'User-003', 'ID-3', 'ID-C');
 
 -- Revised import.sql without manually setting IDs
 INSERT INTO address (user_id, title, first_name, last_name, street, house_number, postal_code, post_office_name, city, country, is_default) VALUES

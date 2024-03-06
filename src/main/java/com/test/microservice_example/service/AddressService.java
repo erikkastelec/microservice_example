@@ -86,7 +86,7 @@ public class AddressService {
             throw new NotFoundException("User not found with the provided identifier.");
         }
 
-        long addressCount = addressRepository.count("user", user);
+        long addressCount = addressRepository.count("user =?1", user);
         if (addressCount >= 3) {
             throw new BadRequestException("User cannot have more than 3 addresses.");
         }
@@ -102,8 +102,18 @@ public class AddressService {
             throw new BadRequestException("Validation error: " + errorMessage.toString());
         }
 
+        if (address.getCountry() != "Slovenia") {
+            throw new BadRequestException("Only addresses in Slovenia are allowed.");
+        }
+
         if (Boolean.TRUE.equals(address.getIsDefault()) || addressCount == 0) {
-            Address currentDefault = addressRepository.find("isDefault = true and user", user).firstResult();
+            
+            // try {
+            Address currentDefault = addressRepository.find("isDefault = true and user = ?1", user).firstResult();
+            // } catch (Exception e) {
+            //     e.printStackTrace();
+            // }
+        
             if (currentDefault != null) {
                 currentDefault.setIsDefault(false);
                 addressRepository.persist(currentDefault);
