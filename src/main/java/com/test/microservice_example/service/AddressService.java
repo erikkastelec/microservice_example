@@ -15,7 +15,6 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.WebApplicationException;
 
 import java.util.List;
 import java.util.Set;
@@ -171,16 +170,19 @@ public class AddressService {
         public boolean deleteAddress(Long id) {
             Address address = addressRepository.findById(id);
             if (address != null) {
+                // Logic for setting a new default address if the deleted address was the default
+                if (address.getIsDefault()) {
+                    // Get the first address of the user and set it as default
+                    Address newDefault = addressRepository.find("user", address.getUser()).firstResult();
+                    if (newDefault != null) {
+                        newDefault.setIsDefault(true);
+                        addressRepository.persist(newDefault);
+                    }
+                }
                 addressRepository.delete(address);
                 return true;
             }
             return false;
-        }
-
-        private void validateAddress(Address address) {
-            if (!"Slovenia".equals(address.getCountry())) {
-                throw new IllegalArgumentException("Only addresses within the Republic of Slovenia can be entered.");
-            }
         }
 
     public Address getAddressById(Long id) {
