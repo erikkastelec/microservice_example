@@ -308,12 +308,12 @@ public class AddressResourceTest {
             .statusCode(200) // Expecting status code 200 for successful retrieval
             .body("find { it.title == 'Naslov 3' }", notNullValue());
     }
-    
+
     @Test
     public void testAddressValidationFails() {
         // Define an address with missing required fields
         Map<String, Object> invalidAddress = new HashMap<>();
-        invalidAddress.put("userId", 1); // Assuming the user exists
+        invalidAddress.put("userId", 1);
         // Do not populate required fields to trigger validation errors
 
         given()
@@ -321,7 +321,6 @@ public class AddressResourceTest {
             .body(invalidAddress)
             .when().post("/addresses")
             .then()
-            .statusCode(404); // Verify the status code for validation errors
-            //.body("errors", hasItem(containsString("required field"))); // Adjust the error message check as per your application's response
+            .statusCode(404);
     }
 }
