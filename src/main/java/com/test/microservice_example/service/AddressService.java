@@ -86,9 +86,15 @@ public class AddressService {
             throw new BadRequestException("User not found with the provided identifier.");
         }
 
+        // Check if the user already has 3 addresses
         long addressCount = addressRepository.count("user =?1", user);
         if (addressCount >= 3) {
             throw new BadRequestException("User cannot have more than 3 addresses.");
+        }
+
+        // Set a default title if not provided
+        if (address.getTitle() == null || address.getTitle().isEmpty()) {
+            address.setTitle("Naslov " + (addressCount + 1));
         }
 
         // Validate the address fields using Bean Validation

@@ -26,7 +26,6 @@ public class Address {
     @JoinColumn(name = "user_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_address_user"))
     private User user;
 
-    @NotBlank(message = "Title is required")
     private String title;
     
     @Column(name = "institution_name")
