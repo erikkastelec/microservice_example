@@ -1,14 +1,13 @@
 version: '3.7'
 
+
 networks:
-  microservice_example:
-    driver: bridge
   traefik:
-    name: traefik
 
 services:
   traefik:
-    image: traefik:2.11.0
+    image: traefik:2.9
+    container_name: traefik
     command:
       - "--log.level=INFO"
       - "--api.insecure=true"
@@ -16,15 +15,17 @@ services:
       - "--providers.docker.exposedByDefault=false"
       - "--entrypoints.web.address=:80"
     ports:
-      - "80:80"
-      - "8085:8080" # The Web UI (enabled by --api.insecure=true)
+      - 80:80
+      - 8085:8080 # The Web UI (enabled by --api.insecure=true)
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - traefik
 
+
   postgres:
     image: postgres
+    container_name: postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: username
@@ -33,18 +34,19 @@ services:
     ports:
       - 5433:5432
     networks:
-      - microservice_example
+      - traefik
     volumes:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 
   app:
     build: .
+    container_name: app
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=PathPrefix(`/app`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.app.entrypoints=web"
       - "traefik.http.services.app.loadbalancer.server.port=8080"
       
     environment:
@@ -54,5 +56,4 @@ services:
     depends_on:
       - postgres
     networks:
-      - microservice_example
       - traefik
