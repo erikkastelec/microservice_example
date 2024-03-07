@@ -7,6 +7,7 @@ import com.test.microservice_example.model.User;
 import com.test.microservice_example.repository.AddressRepository;
 import com.test.microservice_example.repository.UserRepository;
 
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -116,8 +117,12 @@ public class AddressService {
 
         if (Boolean.TRUE.equals(address.getIsDefault()) || addressCount == 0) {
             
-            Address currentDefault = addressRepository.find("isDefault = true and user = ?1", user).firstResult();
-        
+            PanacheQuery<Address> query = addressRepository.find("isDefault = true and user = ?1", user);
+            Address currentDefault = null;
+            if (query != null) {
+                currentDefault = query.firstResult();
+
+            }
             if (currentDefault != null) {
                 currentDefault.setIsDefault(false);
                 addressRepository.persist(currentDefault);

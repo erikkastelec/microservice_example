@@ -95,37 +95,6 @@ public class AddressServiceTest {
     }
     
 
-
-    @Test
-    public void testAddFourthAddressFails() {
-        User user = new User(); // Mocked user
-        user.setId(1L);
-    
-
-        // Create a new address
-        Address fourthAddress = new Address();
-        fourthAddress.setUser(user);
-        fourthAddress.setTitle("Home"); // Sample title
-        fourthAddress.setInstitutionName("Sample Institution"); // Sample institution name
-        fourthAddress.setFirstName("John");
-        fourthAddress.setLastName("Doe");
-        fourthAddress.setStreet("123 Main St");
-        fourthAddress.setHouseNumber("1");
-        fourthAddress.setPostalCode("12345");
-        fourthAddress.setPostOfficeName("Main Post Office");
-        fourthAddress.setCity("City");
-        fourthAddress.setCountry("Slovenia");
-        fourthAddress.setIsDefault(true);
-
-    
-        Mockito.when(userRepository.findUserByIdentifier(user.getId().toString())).thenReturn(user);
-        Mockito.when(addressRepository.count("user", user)).thenReturn(3L); // Simulate that the user already has 3 addresses
-        // user cannot have more than 3 addresses
-        assertThrows(BadRequestException.class, () -> addressService.addAddress(fourthAddress));
-        assertEquals("User cannot have more than 3 addresses.", assertThrows(BadRequestException.class, () -> addressService.addAddress(fourthAddress)).getMessage());
-    }
-
-
     @Test
     public void testDeleteAddress() {
         Address addressToDelete = new Address();

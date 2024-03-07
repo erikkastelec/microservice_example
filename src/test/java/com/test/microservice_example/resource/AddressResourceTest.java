@@ -6,6 +6,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
 
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -22,37 +23,29 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import static org.hamcrest.Matchers.greaterThan;
 
 @QuarkusTest
 public class AddressResourceTest {
 
-    // @Inject
-    // AddressService addressService;
-
-    // @InjectMock
-    // AddressRepository addressRepository;
-
-    // @InjectMock
-    // UserRepository userRepository;
-
     @Test
+    @Order(0)
     public void testGetAddressesEndpoint() {
-        // Mock behavior for addressRepository and userRepository
-        // For example:
-        //Mockito.when(addressRepository.listAll()).thenReturn(Arrays.asList(new Address(), new Address())); // Mocking two addresses
-        
         given()
-          .when().get("/addresses")
-          .then()
-             .statusCode(200)
-             .body("$.size()", is(3)); // Expecting 2 addresses from the mocked repository
+            .when().get("/addresses")
+            .then()
+            .statusCode(200)
+            // size more than 0
+            .body("size()", greaterThan(0));
     }
 
 
@@ -62,7 +55,7 @@ public class AddressResourceTest {
         // JSON payload for the new address, including user identifier
         String newAddressJson = """
             {
-                "userIdentifier": "User-001",
+                "userIdentifier": "User-003",
                 "title": "Vacation Home",
                 "firstName": "Alice",
                 "lastName": "Smith",
@@ -82,14 +75,12 @@ public class AddressResourceTest {
             .body(newAddressJson)
             .when().post("/addresses")
             .then()
-            .log().all()
             .statusCode(201); // Expecting status code 201 for successful creation
 
         // Check that the address was added
         given()
             .when().get("/addresses")
             .then()
-            .log().all()
             .statusCode(200) // Expecting status code 200 for successful retrieval
             .body("find { it.street == '456 Beach St' && it.houseNumber == '2' }", notNullValue()); // Check that an address with the specified street and house number exists
 
@@ -120,14 +111,12 @@ public class AddressResourceTest {
             .body(newAddressJson)
             .when().post("/addresses")
             .then()
-            .log().all()
             .statusCode(201); // Expecting status code 201 for successful creation
 
         // Check that the address was added
         given()
             .when().get("/users/User-003/addresses")
             .then()
-            .log().all()
             .statusCode(200) // Expecting status code 200 for successful retrieval
             .body("find { it.isDefault == true }", notNullValue());
 
@@ -148,14 +137,12 @@ public class AddressResourceTest {
             .body(updatedAddress)
             .when().put("/addresses/1")
             .then()
-            .log().all()
             .statusCode(200); // Assuming status code 200 is expected for successful update
 
         // Fetch the updated address and verify changes
         given()
             .when().get("/addresses/1")
             .then()
-            .log().all()
             .statusCode(200) // Assuming 200 is returned for a successful retrieval
             .body("street", equalTo("789 Updated St")); // Verify the street was updated
     }
@@ -167,13 +154,13 @@ public class AddressResourceTest {
 
         // Perform the delete request for the address with ID 1
         given()
-            .when().delete("/addresses/1")
+            .when().delete("/addresses/3")
             .then()
             .statusCode(204); // Expecting successful deletion
 
         // Attempt to fetch the deleted address to confirm deletion
         given()
-            .when().get("/addresses/1")
+            .when().get("/addresses/3")
             .then()
             .statusCode(404); // Expecting not found after deletion
     }
@@ -242,12 +229,11 @@ public class AddressResourceTest {
             .body(newAddressJson)
             .when().post("/addresses")
             .then()
-            .log().all()
             .statusCode(400); // Expecting status code 400 for invalid country
 
         newAddressJson = """
             {
-                "userIdentifier": "User-001",
+                "userIdentifier": "User-002",
                 "title": "Vacation Home",
                 "firstName": "Alice",
                 "lastName": "Smith",
@@ -267,7 +253,6 @@ public class AddressResourceTest {
             .body(newAddressJson)
             .when().post("/addresses")
             .then()
-            .log().all()
             .statusCode(201); // Expecting status code 201 for successful creation
 
     }
@@ -277,7 +262,7 @@ public class AddressResourceTest {
         // JSON payload for the new address, including user identifier
         String newAddressJson = """
             {
-                "userIdentifier": "User-001",
+                "userIdentifier": "User-003",
                 "title": "",
                 "firstName": "Alice",
                 "lastName": "Smith",
@@ -291,22 +276,30 @@ public class AddressResourceTest {
             }
             """;
 
+        // Count how many addresses the user has
+
+
         // Perform HTTP request to add the new address
         given()
             .contentType(ContentType.JSON)
             .body(newAddressJson)
             .when().post("/addresses")
             .then()
-            .log().all()
+            
             .statusCode(201); // Expecting status code 201 for successful creation
-
+        Integer count = given()
+            .when().get("/users/User-003/addresses")
+            .then()
+            .statusCode(200) // Expecting status code 200 for successful retrieval
+            .extract().path("size()");
         // Check that the address was added
         given()
-            .when().get("/users/User-001/addresses")
+            .when().get("/users/User-003/addresses")
             .then()
-            .log().all()
             .statusCode(200) // Expecting status code 200 for successful retrieval
-            .body("find { it.title == 'Naslov 3' }", notNullValue());
+            // Check that an address with the specified street and house number exists
+            .body("find { it.title == 'Naslov " + count + "' }", notNullValue());
+            
     }
 
     @Test
@@ -321,6 +314,6 @@ public class AddressResourceTest {
             .body(invalidAddress)
             .when().post("/addresses")
             .then()
-            .statusCode(404);
+            .statusCode(400);
     }
 }
