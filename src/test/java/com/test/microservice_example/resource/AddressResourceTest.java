@@ -1,37 +1,19 @@
 package com.test.microservice_example.resource;
 
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import static io.restassured.RestAssured.given;
 
-import com.test.microservice_example.model.Address;
-import com.test.microservice_example.model.User;
-import com.test.microservice_example.repository.AddressRepository;
-import com.test.microservice_example.repository.UserRepository;
-import com.test.microservice_example.service.AddressService;
-
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import static org.hamcrest.Matchers.greaterThan;
 
 @QuarkusTest
